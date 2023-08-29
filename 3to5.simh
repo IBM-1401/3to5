@@ -1,0 +1,4 @@
+at cdr 3to5.o
+at lpt 3to5.lpt
+b cdr
+q

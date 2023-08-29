@@ -1,0 +1,128 @@
+ CLEAR STORAGE 1     ,008015,022026,030037,044,049,053053N000000N00001026                                         1
+ CLEAR STORAGE 2     L068116,105106,110117B101/I9I#071029C029056B026/B001/0991,001/001117I0?                      2
+ BOOTSTRAP           ,008015,022029,036040,047054,061068,072/061039              ,0010011040                      3
+0                          CONVERT THREE-CHARACTER ADDRESS TO FIVE DIGITS                                 PAGE    1
+0 SEQ PG LIN  LABEL  OP    OPERANDS                                            SFX CT  LOCN  INSTRUCTION TYPE  CARD
+ 
+  101                JOB   CONVERT THREE-CHARACTER ADDRESS TO FIVE DIGITS
+  102                CTL   6611
+  103         FROM   EQU   205                                                         0205
+  104         START  LCA   @999@,FROM         FIRST ADDRESS TO CONVERT              7  0333  L 441 205            4
+  105         OUTER  MCW   FROM,TO                                                  7  0340  M 205 514            4
+  106                B     C3TO5              CONVERT IT                            4  0347  B 442                4
+  107                MCW   TO,215                                                   7  0351  M 514 215            4
+  108                MCW   FROM,TO                                                  7  0358  M 205 514            4
+  109                B     C3TO5S             CONVERT IT                            4  0365  B 520                4
+  110                MCW   TO,225                                                   7  0369  M 514 225            5
+  111                MCW   FROM,TO                                                  7  0376  M 205 514            5
+  112                B     C3TO5F             CONVERT IT                            4  0383  B 578                5
+  113                MCW   TO,235                                                   7  0387  M 514 235            5
+  114                MCW   FROM,TO                                                  7  0394  M 205 514            5
+  115                B     C3TO5X             CONVERT IT                            4  0401  B 688                5
+  116                MCW   TO,245                                                   7  0405  M 514 245            6
+  117                W                                                              1  0412  2                    6
+  118                MA    A1K,FROM           BUMP IT BY 1K                         7  0413  # 438 205            6
+  119                C     FROM,@999@         Q. WRAPPED AROUND                     7  0420  C 205 441            6
+  120                BU    OUTER              NO                                    5  0427  B 340 /              6
+  121         DONE   H     DONE                                                     4  0432  . 432                6
+  122         A1K    DSA   1000                                                     3  0438  |00                  6
+  123                LTORG *                                                                  0439
+                     DCW   @999@                                                    3  0441              LIT      7
+  124         *
+  125         * FAST ROUTINE TO COVERT THE THREE-CHARACTER ADDRESS AT
+  126         * ,,TO,, TO A FIVE-DIGIT ADDRESS, IN PLACE.
+  127         *
+  128         C3TO5  SBR   EXIT&3                                                   4  0442  H 509                7
+  129                S     TO-3               CLEAR THOUSANDS DIGITS                4  0446  S 511                7
+  130                MZ    TO,TO-4            LOW ZONE TO ACCUMULATE                7  0450  Y 514 510            7
+  131         LOOP1  BWZ   LOOP1X,TO-4,2      Q. LOW ZONE REMAINING                 8  0457  V 476 510 2          7
+  132                A     @?4@,TO-3          YES, ADD 4K PER LOW ZONE              7  0465  A 517 511            7
+  133                B     LOOP1                                                    4  0472  B 457                7
+  134         LOOP1X MZ    TO-2,TO-4          HIGH ZONE TO ACCUMULATE               7  0476  Y 512 510            8
+  135         LOOP2  BWZ   LOOP2X,TO-4,2      Q. HIGH ZONE REMAINING                8  0483  V 502 510 2          8
+  136                A     @?1@,TO-3          YES, ADD 1K PER HIGH ZONE             7  0491  A 519 511            8
+  137                B     LOOP2                                                    4  0498  B 483                8
+  138         LOOP2X ZA    TO&1               CLEAR ZONES                           4  0502  ? 515                8
+  139         EXIT   B     0-0                                                      4  0506  B 000                8
+  140         TO     DCW   #5                                                       5  0514                       8
+  141                DC    #1                                                       1  0515                       9
+  142                LTORG *                                                                  0516
+                     DCW   @?4@                                                     2  0517              LIT      9
+                     DCW   @?1@                                                     2  0519              LIT      9
+  143         *
+  144         * SMALLEST ROUTINE TO CONVERT THE THREE-CHARACTER ADDRESS AT
+1                          CONVERT THREE-CHARACTER ADDRESS TO FIVE DIGITS                                 PAGE    2
+0 SEQ PG LIN  LABEL  OP    OPERANDS                                            SFX CT  LOCN  INSTRUCTION TYPE  CARD
+ 
+  145         * ,,TO,, TO A FIVE-DIGIT ADDRESS, IN PLACE.
+  146         *
+  147         C3TO5S SBR   EXITS&3                                                  4  0520  H 548                9
+  148                MCW   K00,TO-3           ZERO HIGH DIGITS, LEAVE NO ZONE       7  0524  M 573 511            9
+  149         LOOP1S ZA    TO&1,TEST&1        COPY DIGITS ONLY                      7  0531  ? 515 571           10
+  150                C     TO,TEST            Q. ADDRESS ALL DIGITS                 7  0538  C 514 570           10
+  151         EXITS  BE    0-0                YES, ZONES ALL GONE                   5  0545  B 000 S             10
+  152                MA    AM1000,TO          MA -1000 FROM ADDRESS                 7  0550  # 576 514           10
+  153                A     K1,TO-3            BUMP THOUSANDS                        7  0557  A 577 511           10
+  154                B     LOOP1S                                                   4  0564  B 531               10
+  155         TEST   DCW   #3                                                       3  0570                      11
+  156                DC    #1                                                       1  0571                      11
+  157         K00    DCW   00                                                       2  0573                      11
+  158         AM1000 DSA   16000-1000         -1000                                 3  0576  ?0?                 11
+  159         K1     DCW   1                                                        1  0577                      11
+  160         *
+  161         * FASTER ROUTINE TO COVERT THE THREE-CHARACTER ADDRESS AT
+  162         * ,,TO,, TO A FIVE-DIGIT ADDRESS, IN PLACE.
+  163         *
+  164         C3TO5F SBR   EXITF&3                                                  4  0578  H 686               11
+  165                MCW   K00,TO-3                                                 7  0582  M 573 511           11
+  166                BWZ   LOWF,TO-2,2                                              8  0589  V 634 512 2         11
+  167                BWZ   HIGH2,TO-2,K                                             8  0597  V 620 512 K         12
+  168                BWZ   HIGH1,TO-2,S                                             8  0605  V 627 512 S         12
+  169                A     *-6,TO-3                                                 7  0613  A 613 511           12
+  170         HIGH2  A     *-6,TO-3                                                 7  0620  A 620 511           12
+  171         HIGH1  A     *-6,TO-3                                                 7  0627  A 627 511           12
+  172         LOWF   BWZ   DONEF,TO,2                                               8  0634  V 679 514 2         13
+  173                BWZ   LOW2,TO,K                                                8  0642  V 665 514 K         13
+  174                BWZ   LOW1,TO,S                                                8  0650  V 672 514 S         13
+  175                A     &4,TO-3                                                  7  0658  A 687 511           13
+  176         LOW2   A     &4,TO-3                                                  7  0665  A 687 511           13
+  177         LOW1   A     &4,TO-3                                                  7  0672  A 687 511           14
+  178         DONEF  ZA    TO&1             CLEAR ZONES                             4  0679  ? 515               14
+  179         EXITF  B     0-0                                                      4  0683  B 000               14
+  180                LTORG *                                                                  0687
+                     DCW   &4                                                       1  0687              LIT     14
+  181         *
+  182         * FASTEST ROUTINE TO COVERT THE THREE-CHARACTER ADDRESS AT ,,TO,,
+  183         * TO A FIVE-DIGIT ADDRESS, IN PLACE, BUT IT USES ALL THREE INDEX
+  184         * REGISTERS.
+  185         *
+  186         C3TO5X SBR   EXITX&3                                                  4  0688  H 734               14
+  187                LCA   @0020000400006@,99                                       7  0692  L 763 099           14
+  188                MZ    TO-2,*&3         SET INDEX REGISTER FOR THOUSANDS        7  0699  Y 512 708           14
+  189                MCW   THOU,TO-3                                                7  0706  M 736 511           15
+  190                MZ    TO,*&3           INDEX REGISTER FOR 4-THOUSANDS          7  0713  Y 514 722           15
+  191                A     THOU4,TO-3                                               7  0720  A 744 511           15
+  192                ZA    TO&1             CLEAR ZONES                             4  0727  ? 515               15
+  193         EXITX  B     0-0                                                      4  0731  B 000               15
+1                          CONVERT THREE-CHARACTER ADDRESS TO FIVE DIGITS                                 PAGE    3
+0 SEQ PG LIN  LABEL  OP    OPERANDS                                            SFX CT  LOCN  INSTRUCTION TYPE  CARD
+ 
+  194         THOU   DCW   00                                                       2  0736                      15
+  195                DCW   01                                                       2  0738                      15
+  196                DCW   02                                                       2  0740                      16
+  197                DCW   03                                                       2  0742                      16
+  198         THOU4  DCW   00                                                       2  0744                      16
+  199                DCW   04                                                       2  0746                      16
+  200                DCW   08                                                       2  0748                      16
+  201                DCW   12                                                       2  0750                      16
+                     DCW   @0020000400006@                                         13  0763              LIT     16
+  202                END   START                                                             / 333 080
+1                                                                                                         PAGE    4
+0SYMBOL  ADDRESS  SYMBOL  ADDRESS  SYMBOL  ADDRESS  SYMBOL  ADDRESS  SYMBOL  ADDRESS  SYMBOL  ADDRESS  SYMBOL  ADDRESS  
+
+ A1K       438: 0    AM1000    576: 0    C3TO5     442: 0    C3TO5F    578: 0    C3TO5S    520: 0    C3TO5X    688: 0   
+ DONE      432: 0    DONEF     679: 0    EXIT      506: 0    EXITF     683: 0    EXITS     545: 0    EXITX     731: 0   
+ FROM      205: 0    HIGH1     627: 0    HIGH2     620: 0    K00       573: 0    K1        577: 0    LOOP1     457: 0   
+ LOOP1S    531: 0    LOOP1X    476: 0    LOOP2     483: 0    LOOP2X    502: 0    LOW1      672: 0    LOW2      665: 0   
+ LOWF      634: 0    OUTER     340: 0    START     333: 0    TEST      570: 0    THOU      736: 0    THOU4     744: 0   
+ TO        514: 0   
